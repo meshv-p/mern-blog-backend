@@ -132,6 +132,43 @@ const deleteProfile = async (req, res) => {
   }
 };
 
+const followUser = async (req, res) => {
+  //Headers -- requesting user to _id account for follow
+  //use follow (_id user) so add following in user
+  // add (_id User) add follwers
+
+  let { _id } = req.params;
+  let userId = req.user.id;
+  console.log(userId);
+  try {
+    let newProfile = await Profile.findOne({ user: _id });
+    try {
+      if (newProfile.followers?.includes(userId)) {
+        newProfile.followers?.pull(userId);
+      } else {
+        newProfile.followers?.push(userId);
+      }
+      newProfile.save();
+    } catch (error) {
+      return res.json({ msg: "some error occured", status: false });
+    }
+
+    let requestedUser = await Profile.findOne({ user: userId });
+    console.log(requestedUser);
+    if (requestedUser.following?.includes(userId)) {
+      requestedUser.following?.pull(userId);
+    } else {
+      requestedUser.following?.push(userId);
+    }
+    requestedUser.save();
+
+    console.log(newProfile);
+    res.json({ newProfile, requestedUser });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   getAllUser,
   createUser,
@@ -139,4 +176,5 @@ module.exports = {
   getOneUser,
   updateProfile,
   deleteProfile,
+  followUser,
 };

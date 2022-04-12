@@ -41,6 +41,20 @@ const ProfileSchema = new mongoose.Schema(
     number: { type: Number, default: 0 },
     Profile_pic: { type: String, default: null },
     // posted_blogs: "Number",
+    followers: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
+    following: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
     saved_blogs: [
       {
         type: mongoose.Types.ObjectId,

@@ -8,10 +8,13 @@ const {
   getOneUser,
   updateProfile,
   deleteProfile,
+  followUser,
 } = require("../controllers/user");
+const { fetchUser } = require("../middleware/fetchUser");
 
 router.route("/").get(getAllUser).post(createUser);
 router.route("/login").post(login);
+router.patch("/friends/:_id", fetchUser, followUser);
 router
   .route("/:_id")
   .get(getOneUser)

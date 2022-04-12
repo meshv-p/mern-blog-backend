@@ -15,7 +15,7 @@ const fetchUser = async (req, res, next) => {
     });
   try {
     let data = jwt.verify(token, jwtSecret);
-    // console.log(data);
+    console.log(data);
     try {
       currentUser = data.id;
     } catch (error) {

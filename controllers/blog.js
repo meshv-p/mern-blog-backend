@@ -174,29 +174,47 @@ const findBlog = async (req, res) => {
   /**
    * Find the blog by title OR tag
    */
-  let { search } = req.query;
-  console.log(search);
+  let { title } = req.query;
+  console.log(typeof title);
   try {
-    let result = await blog.aggregate([
-      {
-        $search: {
-          index: "title",
-          text: {
-            query: search,
-            path: {
-              wildcard: "*",
-            },
+    // let result = await blog.aggregate([
+    //   {
+    //     $search: {
+    //       index: "title",
+    //       text: {
+    //         query: title,
+    //         path: {
+    //           wildcard: "*",
+    //         },
+    //       },
+    //     },
+    //   },
+    // ]);
+
+    let result = await blog.find({
+      $or: [
+        {
+          title: {
+            $regex: new RegExp(title, "i"),
           },
         },
-      },
-    ]);
+        {
+          desc: {
+            $regex: new RegExp(title, "i"),
+          },
+        },
+      ],
+    });
+
+    console.log(result);
     if (result.length == 0)
       return res.json({
         message: "No result found",
       });
-    console.log(result);
+    // console.log(result);
     res.json({ result });
   } catch (error) {
+    console.log(error);
     return res.json({
       message: "No result found",
     });

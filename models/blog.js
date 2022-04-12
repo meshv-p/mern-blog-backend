@@ -21,7 +21,7 @@ const BlogSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         default: [],
-        unique: true,
+        // unique: true,
       },
     ],
     totalLike: { type: Number, default: 0 },
