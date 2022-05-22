@@ -1,6 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const blog = require("../models/blog");
-const { User } = require("../models/user");
+const { User, Profile } = require("../models/user");
 // var jwt = require("jsonwebtoken");
 
 const getAllBlogs = async (req, res) => {
@@ -174,8 +174,8 @@ const findBlog = async (req, res) => {
   /**
    * Find the blog by title OR tag
    */
-  let { title } = req.query;
-  console.log(typeof title);
+  let { title, tag, user } = req.query;
+  // console.log(typeof title);
   try {
     // let result = await blog.aggregate([
     //   {
@@ -191,28 +191,96 @@ const findBlog = async (req, res) => {
     //   },
     // ]);
 
-    let result = await blog.find({
-      $or: [
-        {
-          title: {
-            $regex: new RegExp(title, "i"),
-          },
-        },
-        {
-          desc: {
-            $regex: new RegExp(title, "i"),
-          },
-        },
-      ],
-    });
+    if (title) {
+      console.log("The title :", title);
 
-    console.log(result);
-    if (result.length == 0)
-      return res.json({
-        message: "No result found",
-      });
-    // console.log(result);
-    res.json({ result });
+      let result = await blog.aggregate([
+        {
+          $match: {
+            $or: [
+              {
+                title: {
+                  $regex: new RegExp(title, "i"),
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "profiles",
+            localField: "user",
+            foreignField: "user",
+            as: "user",
+          },
+        },
+      ]);
+
+      console.log(result);
+      if (result.length == 0)
+        return res.json({
+          message: "No result found",
+        });
+      return res.json({ result });
+    } else if (tag) {
+      let result = await blog.aggregate([
+        {
+          $match: {
+            tag: {
+              $regex: new RegExp(tag, "i"),
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "profiles",
+            localField: "user",
+            foreignField: "user",
+            as: "user",
+          },
+        },
+      ]);
+      // console.log(result);
+      if (result.length == 0)
+        return res.json({
+          message: "No result found",
+        });
+      // console.log(result);
+      return res.json({ result });
+    }
+    if (user) {
+      // let result = await Profile.find({
+      //   username: {
+      //     $regex: new RegExp(user, "i"),
+      //   },
+      // }).populate("followers");
+
+      let result = await Profile.aggregate([
+        {
+          $match: {
+            username: {
+              $regex: new RegExp(user, "i"),
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "profiles",
+            localField: "followers",
+            foreignField: "user",
+            as: "followers",
+          },
+        },
+      ]);
+
+      // console.log(result);
+      if (result.length == 0)
+        return res.json({
+          message: "No result found of user",
+        });
+      // console.log(result);
+      return res.json({ result });
+    }
   } catch (error) {
     console.log(error);
     return res.json({
@@ -241,7 +309,7 @@ const updateBlog = async (req, res) => {
 const makeLikeToBlog = async (req, res) => {
   let { _id } = req.params;
   let user = req.user;
-  console.log(user);
+  // console.log(user);
   try {
     let findBlog = await blog.find({
       _id,
@@ -252,7 +320,7 @@ const makeLikeToBlog = async (req, res) => {
       },
     });
     let hasUserLiked = false;
-    console.log(findBlog.length);
+    // console.log(findBlog.length);
     let newBlog = await blog.findById(_id);
     if (findBlog.length !== 0) {
       newBlog.like.pull(user.id);

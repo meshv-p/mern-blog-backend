@@ -6,7 +6,7 @@ const saltRounds = 10;
 
 const getAllUser = async (req, res) => {
   try {
-    let allUser = await User.find({});
+    let allUser = await Profile.find({});
     res.json({ allUser });
   } catch (error) {
     res.json({ error });
@@ -16,7 +16,7 @@ const getAllUser = async (req, res) => {
 const getOneUser = async (req, res) => {
   let { _id } = req.params;
   try {
-    let oneUser = await Profile.findOne({ user: _id });
+    let oneUser = await Profile.findOne({ _id });
     res.json({ oneUser });
   } catch (error) {
     res.json({ error });
@@ -108,7 +108,8 @@ const updateProfile = async (req, res) => {
   let { _id } = req.params;
   let body = req.body;
   try {
-    let newProfile = await Profile.findOneAndUpdate(_id, body, {
+    console.log(_id, body);
+    let newProfile = await Profile.findOneAndUpdate({ _id }, body, {
       new: true,
     });
     console.log(newProfile);
