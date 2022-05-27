@@ -91,7 +91,7 @@ const createblog = async (req, res) => {
 
     // Logged in user data from headers
     let data = req.user;
-    // console.log(body);
+    console.log(body.tag);
     let newBlog = new blog({ ...body, user: data.id });
     await newBlog.save();
 
@@ -107,6 +107,9 @@ const createblog = async (req, res) => {
       });
     }
     return res.send({ newBlog });
+    // return res.json({
+    //   body: "got it" + body.tag,
+    // });
   } catch (error) {
     console.log(error);
   }

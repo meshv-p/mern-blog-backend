@@ -1,7 +1,8 @@
 const { User, Profile } = require("../models/user");
 const bcrypt = require("bcrypt");
 var jwt = require("jsonwebtoken");
-
+let { Schema } = require("mongoose");
+const { default: mongoose } = require("mongoose");
 const saltRounds = 10;
 
 const getAllUser = async (req, res) => {
@@ -16,7 +17,25 @@ const getAllUser = async (req, res) => {
 const getOneUser = async (req, res) => {
   let { _id } = req.params;
   try {
-    let oneUser = await Profile.findOne({ _id });
+    // let oneUser = await Profile.findOne({ _id })
+    let oneUser = await Profile.aggregate([
+      {
+        $match: {
+          // _id,
+          _id: mongoose.Types.ObjectId(_id),
+        },
+      },
+      {
+        $lookup: {
+          from: "profiles",
+          localField: "followers",
+          foreignField: "user",
+          as: "followers",
+        },
+      },
+    ]);
+    // .populate("followers")
+    // .populate("following");
     res.json({ oneUser });
   } catch (error) {
     res.json({ error });
@@ -138,32 +157,55 @@ const followUser = async (req, res) => {
   //use follow (_id user) so add following in user
   // add (_id User) add follwers
 
-  let { _id } = req.params;
-  let userId = req.user.id;
+  let { _id } = req.params; // another user founded
+  let userId = req.user.id; //current loggedin user
   console.log(userId);
   try {
-    let newProfile = await Profile.findOne({ user: _id });
+    // let anotherUserProfile = await Profile.findOne({ user: _id });
+
+    // try {
+    //   if (
+    //     anotherUserProfile?.followers?.includes(Schema.Types.ObjectId(userId))
+    //   ) {
+    //     console.log("followers incre");
+    //     anotherUserProfile?.followers?.push(userId);
+    //   } else {
+    //     console.log("followers dece");
+    //     anotherUserProfile?.followers?.pull(Schema.Types.ObjectId(userId));
+    //   }
+
+    //   return res.json({ txt: "done" });
+    // } catch (error) {
+    //   console.log(error);
+    // }
+
+    let newProfile = await Profile.findOne({ _id });
     try {
       if (newProfile.followers?.includes(userId)) {
+        console.log("follower dec of anotheruser");
         newProfile.followers?.pull(userId);
       } else {
+        console.log("follower ince of anotheruser");
         newProfile.followers?.push(userId);
       }
       newProfile.save();
     } catch (error) {
-      return res.json({ msg: "some error occured", status: false });
+      return res.json({ msg: "some error occured" + error, status: false });
     }
 
     let requestedUser = await Profile.findOne({ user: userId });
-    console.log(requestedUser);
-    if (requestedUser.following?.includes(userId)) {
-      requestedUser.following?.pull(userId);
+    console.log(requestedUser, "current user");
+    if (requestedUser.following?.includes(_id)) {
+      console.log("following dec of current");
+
+      requestedUser.following?.pull(_id);
     } else {
-      requestedUser.following?.push(userId);
+      console.log("following ince of current");
+      requestedUser.following?.push(_id);
     }
     requestedUser.save();
 
-    console.log(newProfile);
+    // console.log(newProfile);
     res.json({ newProfile, requestedUser });
   } catch (error) {
     console.log(error);
