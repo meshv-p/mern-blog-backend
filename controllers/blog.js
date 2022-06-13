@@ -143,7 +143,7 @@ const getOneBlog = async (req, res) => {
         return res.json({
           message: "Blog not found...",
         });
-      res.json({ findBlog });
+      res.json(findBlog[0]);
       // console.log(profile);
       // return res.json({ profile });
     } catch (error) {
@@ -195,7 +195,7 @@ const findBlog = async (req, res) => {
     // ]);
 
     if (title) {
-      console.log("The title :", title);
+      console.log("The title :");
 
       let result = await blog.aggregate([
         {
@@ -219,13 +219,14 @@ const findBlog = async (req, res) => {
         },
       ]);
 
-      console.log(result);
+      // console.log(result);
       if (result.length == 0)
         return res.json({
           message: "No result found",
         });
       return res.json({ result });
     } else if (tag) {
+      console.log("tag============");
       let result = await blog.aggregate([
         {
           $match: {
@@ -244,7 +245,7 @@ const findBlog = async (req, res) => {
         },
       ]);
       // console.log(result);
-      if (result.length == 0)
+      if (result.length === 0)
         return res.json({
           message: "No result found",
         });
@@ -257,7 +258,7 @@ const findBlog = async (req, res) => {
       //     $regex: new RegExp(user, "i"),
       //   },
       // }).populate("followers");
-
+      console.log("user =============>");
       let result = await Profile.aggregate([
         {
           $match: {

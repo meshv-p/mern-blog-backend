@@ -33,10 +33,18 @@ const getOneUser = async (req, res) => {
           as: "followers",
         },
       },
+      {
+        $lookup: {
+          from: "profiles",
+          localField: "following",
+          foreignField: "_id",
+          as: "following",
+        },
+      },
     ]);
     // .populate("followers")
     // .populate("following");
-    res.json({ oneUser });
+    res.json(oneUser[0]);
   } catch (error) {
     res.json({ error });
   }
@@ -46,15 +54,29 @@ const createUser = async (req, res) => {
   try {
     let { username, password, email, name } = req.body;
 
+    if (!name)
+      return res.status(403).json({
+        msg: "Please Provide an Name...",
+      });
     if (!email)
-      return res.json({
-        err: "Please Provide an Email...",
+      return res.status(403).json({
+        msg: "Please Provide an Email...",
+      });
+
+    if (!username)
+      return res.status(403).json({
+        msg: "Please Provide an Username...",
+      });
+
+    if (!password)
+      return res.status(403).json({
+        msg: "Please Provide an Password...",
       });
 
     let existsUser = await User.findOne({ username });
     if (existsUser)
       return res.status(400).json({
-        message: "User is already exists with this username.",
+        msg: "User is already exists with this username.",
       });
 
     bcrypt.genSalt(saltRounds, function (err, salt) {
@@ -73,6 +95,7 @@ const createUser = async (req, res) => {
           username,
           email,
           user: newUser._id,
+          name,
         });
 
         // console.log(newUser);
@@ -95,7 +118,7 @@ const login = async (req, res) => {
       return res.status(400).json({
         msg: "User doesn't exists",
       });
-    // console.log(oldUser);
+    console.log(oldUser);
     bcrypt.compare(password, oldUser.password, async function (err, result) {
       // result == true
       if (result) {
@@ -118,7 +141,7 @@ const login = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(401).send({
-      message: "User doesn't exists...",
+      msg: "User doesn't exists...",
     });
   }
 };
@@ -190,6 +213,7 @@ const followUser = async (req, res) => {
       }
       newProfile.save();
     } catch (error) {
+      console.log(error, "error here 216");
       return res.json({ msg: "some error occured" + error, status: false });
     }
 
@@ -208,7 +232,7 @@ const followUser = async (req, res) => {
     // console.log(newProfile);
     res.json({ newProfile, requestedUser });
   } catch (error) {
-    console.log(error);
+    console.log(error, "error here");
   }
 };
 

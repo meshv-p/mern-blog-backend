@@ -37,6 +37,10 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       required: [true],
     },
+    name: {
+      type: String,
+      // required: true,
+    },
     email: String,
     number: { type: Number, default: 0 },
     Profile_pic: { type: String, default: null },

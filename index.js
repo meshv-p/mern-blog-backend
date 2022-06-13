@@ -4,6 +4,7 @@ let router = require("./routes/blog");
 let user = require("./routes/user");
 const cors = require("cors");
 let comment = require("./routes/comment");
+let notifications = require("./routes/notifications");
 const Image = require("./models/Image");
 const multer = require("multer");
 let app = express();
@@ -39,6 +40,7 @@ cloudinary.config({
 
 // app.get("api/v1/search", findBlog);
 app.use("/api/v1/comment/", comment);
+app.use("/api/v1/notification/", notifications);
 app.use("/api/v1/users/", user);
 app.use("/api/v1/", router);
 let port = 5000;

@@ -24,7 +24,7 @@ const fetchUser = async (req, res, next) => {
     req.user = data;
     next();
   } catch (error) {
-    return res.json({
+    return res.status(404).json({
       error,
     });
   }
