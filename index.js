@@ -5,11 +5,8 @@ let user = require("./routes/user");
 const cors = require("cors");
 let comment = require("./routes/comment");
 let notifications = require("./routes/notifications");
-const Image = require("./models/Image");
-const multer = require("multer");
 let app = express();
-let fs = require("fs");
-const path = require("path");
+require("dotenv").config();
 var cloudinary = require("cloudinary").v2;
 
 // middleware
@@ -18,17 +15,6 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Server is running perfectly.");
-});
-
-// Step 7 - the GET request handler that provides the HTML UI
-var upload = multer({ storage: storage });
-var storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads");
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now());
-  },
 });
 
 cloudinary.config({

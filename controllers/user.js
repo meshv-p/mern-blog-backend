@@ -3,7 +3,10 @@ const bcrypt = require("bcrypt");
 var jwt = require("jsonwebtoken");
 let { Schema } = require("mongoose");
 const { default: mongoose } = require("mongoose");
+const Token = require("../models/token");
 const saltRounds = 10;
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail");
 
 const getAllUser = async (req, res) => {
   try {
@@ -236,6 +239,86 @@ const followUser = async (req, res) => {
   }
 };
 
+const sendPasswordReset = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user)
+      return res
+        .status(400)
+        .json({ msg: "user with given email doesn't exist" });
+
+    let token = await Token.findOne({ userId: user._id });
+    if (!token) {
+      token = await new Token({
+        userId: user._id,
+        token: crypto.randomBytes(32).toString("hex"),
+      }).save();
+    }
+
+    const link = `${process.env.BASE_URL}/password-reset/${user._id}/${token.token}`;
+
+    const subject = "Reset password link";
+    let text = `Hi, ${user.username}, Please reset your password`;
+    let html = `Hi, ${user.username}, Please reset your password <br><p>You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n Please click on the following link, or paste this into your browser to complete the process:<br>
+  <a href=${link}>Reset Password</a> <br> If you did not request this, please ignore this email and your password will remain unchanged.\n </p>`;
+    await sendEmail(user.email, subject, text, html);
+
+    return res.json({ msg: "password reset link sent to your email account" });
+  } catch (error) {
+    res.json({ err: "An error occured" });
+    console.log(error);
+  }
+};
+
+const passwordReset = async (req, res) => {
+  console.log(req.params);
+  let { token } = req.params;
+  let { password: userNewPassword } = req.body;
+  if (!token)
+    return res.status(404).json({
+      msg: "Token is not available.Please provide token",
+    });
+  try {
+    let userToken = await Token.findOne({ token });
+    // console.log(userToken);
+    if (!userToken)
+      return res.status(404).json({
+        msg: "This token is not valid. Your token may have expired.",
+      });
+
+    // user email
+    let user = await User.findOne({ _id: userToken.userId });
+
+    bcrypt.genSalt(saltRounds, function (err, salt) {
+      bcrypt.hash(userNewPassword, salt, async function (err, hash) {
+        // Store hash in your password DB.
+        if (err) console.log(err);
+        await User.findOneAndUpdate(
+          { _id: mongoose.Types.ObjectId(userToken.userId) },
+          {
+            password: hash,
+          },
+          {
+            new: true,
+          }
+        );
+        console.log(user.email);
+        const subject = "Your password has been changed";
+        let html = `<p>This is a confirmation that the password for your account ${user.email} has just been changed. </p>`;
+        await sendEmail(user.email, subject, subject, html);
+
+        return res
+          .status(200)
+          .json({ msg: "Password has been successfully changed." });
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    // return res.status(500).json({ err: "An unexpected error occurred" });
+    return res.status(500).json({ err: error });
+  }
+};
+
 module.exports = {
   getAllUser,
   createUser,
@@ -244,4 +327,6 @@ module.exports = {
   updateProfile,
   deleteProfile,
   followUser,
+  sendPasswordReset,
+  passwordReset,
 };
