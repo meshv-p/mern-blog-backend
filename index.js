@@ -5,9 +5,13 @@ let user = require("./routes/user");
 const cors = require("cors");
 let comment = require("./routes/comment");
 let notifications = require("./routes/notifications");
+let Chat = require("./routes/chat");
+const startSocket = require("./webSocket/socket");
 let app = express();
 require("dotenv").config();
 var cloudinary = require("cloudinary").v2;
+
+startSocket();
 
 // middleware
 app.use(cors());
@@ -27,6 +31,7 @@ cloudinary.config({
 // app.get("api/v1/search", findBlog);
 app.use("/api/v1/comment/", comment);
 app.use("/api/v1/notification/", notifications);
+app.use("/api/v1/chats/", Chat);
 app.use("/api/v1/users/", user);
 app.use("/api/v1/", router);
 let port = 5000;

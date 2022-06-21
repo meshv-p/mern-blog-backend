@@ -121,7 +121,7 @@ const login = async (req, res) => {
       return res.status(400).json({
         msg: "User doesn't exists",
       });
-    console.log(oldUser);
+    // console.log(oldUser);
     bcrypt.compare(password, oldUser.password, async function (err, result) {
       // result == true
       if (result) {
@@ -129,12 +129,33 @@ const login = async (req, res) => {
           id: oldUser._id,
           username,
         };
-        let profile = await Profile.findOne({ user: oldUser._id });
-        // console.log(profile);
+        let profile = await Profile.aggregate([
+          {
+            $match: {
+              user: oldUser._id,
+            },
+          },
+          {
+            $lookup: {
+              from: "profiles",
+              localField: "followers",
+              foreignField: "user",
+              as: "followers",
+            },
+          },
+          {
+            $lookup: {
+              from: "profiles",
+              localField: "following",
+              foreignField: "_id",
+              as: "following",
+            },
+          },
+        ]);
 
         let authToken = jwt.sign(data, "Meshv#1341");
 
-        res.json({ result, authToken, profile });
+        res.json({ result, authToken, profile: profile[0] });
       } else {
         res.status(401).json({ msg: "Wrong credentials" });
       }

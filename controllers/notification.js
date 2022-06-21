@@ -23,7 +23,7 @@ const makeNotification = async (req, res) => {
 const getNotificationByUser = async (req, res) => {
   let LoggedInUser = req.user;
   try {
-    console.log(LoggedInUser, "logg");
+    // console.log(LoggedInUser, "logg");
     // let allNotifications = await Notification.find({
     //   to: LoggedInUser.id,
     //   hasUserRead: false,
@@ -45,7 +45,7 @@ const getNotificationByUser = async (req, res) => {
         },
       },
     ]);
-    console.log(allNotifications + "hey?");
+    // console.log(allNotifications + "hey?");
 
     res.send(allNotifications);
   } catch (error) {
